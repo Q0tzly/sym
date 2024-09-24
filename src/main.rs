@@ -1,3 +1,6 @@
+use sym::command::Commands;
+
 fn main() {
-    println!("Hello, world!");
+    let cmd = Commands::new();
+    cmd.run_cmd();
 }
