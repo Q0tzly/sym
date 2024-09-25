@@ -1,4 +1,9 @@
+use crate::utils;
 use std::env;
+
+// Add Command::Error() that instead Command::Unknown in the Future.
+// And also add the Error enum.
+// Or make new file that name error.rs.
 
 enum Command {
     Help,
@@ -21,6 +26,7 @@ impl Commands {
             match args[1].as_str() {
                 "help" => Command::Help,
                 "version" => Command::Version,
+                //"run" => Command::Error(NoFileArgs),
                 _ => Command::Unknown,
             }
         } else {
@@ -30,13 +36,32 @@ impl Commands {
         Commands { command }
     }
 
-    pub fn run_cmd(self) {
+    pub fn run_cmd(self) -> Option<Vec<String>> {
         match self.command {
-            Command::Run(file_name) => todo!(),
-            Command::Help => Self::help(),
-            Command::Version => Self::version(),
-            _ => Self::error(),
+            Command::Run(file_name) => match utils::read_lines(&file_name) {
+                Some(code) => Some(code),
+                None => {
+                    Self::no_file_error();
+                    None
+                }
+            },
+            Command::Help => {
+                Self::help();
+                None
+            }
+            Command::Version => {
+                Self::version();
+                None
+            }
+            _ => {
+                Self::no_cmd_error();
+                None
+            }
         }
+    }
+
+    fn no_file_error() {
+        println!("error: no such file\n\n")
     }
 
     fn help() {
@@ -45,7 +70,7 @@ impl Commands {
         )
     }
 
-    fn error() {
+    fn no_cmd_error() {
         println!(
             "error: no such command\n\n    If you want to see help, run this command 'sym help'"
         )
@@ -63,7 +88,7 @@ mod tests {
 
     fn set_args(args: Vec<&str>) {
         unsafe {
-            env::set_var("CARGO_PKG_VERSION", "0.1.0"); // Set version for testing
+            env::set_var("CARGO_PKG_VERSION", "0.1.0");
             let args_string = args.join(" ");
             //let args_vec: Vec<String> = args.iter().map(|s| s.to_string()).collect();
             env::set_var("ARGS", args_string);
