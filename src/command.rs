@@ -36,7 +36,7 @@ impl Commands {
         Commands { command }
     }
 
-    pub fn run_cmd(self) -> Option<Vec<String>> {
+    pub fn run(self) -> Option<Vec<String>> {
         match self.command {
             Command::Run(file_name) => match utils::read_lines(&file_name) {
                 Some(code) => Some(code),
