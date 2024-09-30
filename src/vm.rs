@@ -75,7 +75,7 @@ impl VM {
             Instruction::Mul => {
                 let a = self.stack.pop().unwrap();
                 let b = self.stack.pop().unwrap();
-                self.stack.push(a + b);
+                self.stack.push(a * b);
             }
             Instruction::Div => {
                 let a = self.stack.pop().unwrap();
