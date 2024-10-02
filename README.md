@@ -1,6 +1,6 @@
 # Sym - 0.1.0
 
-Sym (Symbolic) Programming Language is stackbase programming language. It has smallest struct and tiny instructions base
+Sym (Symbolic) is stackbase programming language. It has smallest struct and tiny instructions base
 d symbolic.
 
 [[English](https://github.com/Q0tzly/sym/blob/main/README.md)|[日本語](https://github.com/Q0tzly/sym/blob/main/docs/README.ja.md)]

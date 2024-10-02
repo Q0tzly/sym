@@ -1,6 +1,6 @@
 # Sym - 0.1.0
 
-Sym (Symbolic) プログラミング言語は、スタックベースのプログラミング言語です。記号ベースの最小限の構造と小さな命令を持っています。
+Sym (Symbolic) はスタックベースのプログラミング言語です。記号ベースの最小限の構造と小さな命令を持っています。
 
 [[English](https://github.com/Q0tzly/sym/blob/main/README.md)|[日本語](https://github.com/Q0tzly/sym/blob/main/docs/README.ja.md)]
 
