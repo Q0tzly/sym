@@ -1,3 +1,4 @@
+use crate::error::SymError;
 use crate::instructions::Instruction;
 
 #[derive(Debug, Clone)]
@@ -33,8 +34,9 @@ impl Parser {
         lexed_code
     }
 
-    pub fn parse(&mut self) {
-        self.code = Instruction::instructions_from_strings(self.lexer());
+    pub fn parse(&mut self) -> Result<(), SymError> {
+        self.code = Instruction::instructions_from_strings(self.lexer())?;
+        Ok(())
     }
 
     pub fn get_code(&self) -> Vec<Line> {

@@ -1,3 +1,4 @@
+use crate::error::SymError;
 use crate::parse::Line;
 
 #[derive(Debug, Clone, Copy)]
@@ -32,71 +33,54 @@ pub enum Instruction {
 }
 
 impl Instruction {
-    fn instruction_from_string(input: String) -> Instruction {
+    fn instruction_from_string(input: String) -> Result<Instruction, SymError> {
         match input.as_str() {
             // Stack operations
-            "_" => Instruction::Pop,
-            "@" => Instruction::Dup,
-            "&" => Instruction::Swap,
+            "_" => Ok(Instruction::Pop),
+            "@" => Ok(Instruction::Dup),
+            "&" => Ok(Instruction::Swap),
             // Arithmetic operations
-            "+" => Instruction::Add,
-            "-" => Instruction::Sub,
-            "*" => Instruction::Mul,
-            "/" => Instruction::Div,
-            "%" => Instruction::Mod,
+            "+" => Ok(Instruction::Add),
+            "-" => Ok(Instruction::Sub),
+            "*" => Ok(Instruction::Mul),
+            "/" => Ok(Instruction::Div),
+            "%" => Ok(Instruction::Mod),
             // Comparison operations
-            "=" => Instruction::Eq,
-            ">" => Instruction::Gt,
-            "<" => Instruction::Lt,
+            "=" => Ok(Instruction::Eq),
+            ">" => Ok(Instruction::Gt),
+            "<" => Ok(Instruction::Lt),
             // Control operations
-            ";" => Instruction::Halt,
-            "?" => Instruction::In,
-            "!" => Instruction::Out,
-            "$?" => Instruction::DebugIn,
-            "$!" => Instruction::DebugOut,
+            ";" => Ok(Instruction::Halt),
+            "?" => Ok(Instruction::In),
+            "!" => Ok(Instruction::Out),
+            "$?" => Ok(Instruction::DebugIn),
+            "$!" => Ok(Instruction::DebugOut),
             // Handle numeric push or control flow instructions
-            s => {
-                if s.is_empty() {
-                    Instruction::None
-                } else if s.chars().next().is_some_and(|c| c.is_ascii_digit()) {
-                    // Parse push instruction when the string is a number
-                    if let Ok(num) = s.parse::<u8>() {
-                        Instruction::Push(num)
-                    } else {
-                        Instruction::None
-                    }
-                } else {
-                    // Check for control flow instructions like ^num, |num, ~num
-                    match s.chars().next() {
-                        Some('^') => {
-                            if let Ok(num) = s[1..].parse::<usize>() {
-                                Instruction::Jmp(num)
-                            } else {
-                                Instruction::None
-                            }
-                        }
-                        Some('|') => {
-                            if let Ok(num) = s[1..].parse::<usize>() {
-                                Instruction::Jz(num)
-                            } else {
-                                Instruction::None
-                            }
-                        }
-                        Some('~') => {
-                            if let Ok(num) = s[1..].parse::<usize>() {
-                                Instruction::Jnz(num)
-                            } else {
-                                Instruction::None
-                            }
-                        }
-                        _ => Instruction::None,
-                    }
-                }
-            }
+            "" => Ok(Instruction::None),
+            s if s.chars().next().is_some_and(|c| c.is_ascii_digit()) => s
+                .parse::<u8>()
+                .map(|n| Instruction::Push(n))
+                .map_err(|_| SymError::UnknownInstruction(s.to_string())),
+            // Check for control flow instructions like ^num, |num, ~num
+            s if s.starts_with('^') => s[1..]
+                .parse::<usize>()
+                .map(|n| Instruction::Jmp(n))
+                .map_err(|_| SymError::UnknownInstruction(s.to_string())),
+
+            s if s.starts_with('|') => s[1..]
+                .parse::<usize>()
+                .map(Instruction::Jz)
+                .map_err(|_| SymError::UnknownInstruction(s.to_string())),
+
+            s if s.starts_with('~') => s[1..]
+                .parse::<usize>()
+                .map(Instruction::Jnz)
+                .map_err(|_| SymError::UnknownInstruction(s.to_string())),
+            s => Err(SymError::UnknownInstruction(s.to_string())),
         }
     }
 
-    pub fn instructions_from_strings(lexed_code: Vec<Vec<String>>) -> Vec<Line> {
+    pub fn instructions_from_strings(lexed_code: Vec<Vec<String>>) -> Result<Vec<Line>, SymError> {
         let mut parsed_code: Vec<Line> = Vec::new();
 
         for line in lexed_code {
@@ -108,7 +92,7 @@ impl Instruction {
                 let mut instructions: Vec<Instruction> = Vec::new();
                 for s in line {
                     // For each string in the line, convert it to an Instruction
-                    let instruction = Instruction::instruction_from_string(s);
+                    let instruction = Instruction::instruction_from_string(s)?;
                     instructions.push(instruction);
                 }
                 // Create a Line::Instruction variant containing the parsed instructions
@@ -116,7 +100,7 @@ impl Instruction {
             });
         }
 
-        parsed_code
+        Ok(parsed_code)
     }
 }
 

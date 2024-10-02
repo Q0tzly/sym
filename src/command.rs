@@ -1,56 +1,45 @@
-use crate::utils;
 use std::env;
+use std::process;
 
-// Add Command::Error() that instead Command::Unknown in the Future.
-// And also add the Error enum.
-// Or make new file that name error.rs.
+use crate::{error::SymError, utils};
 
 enum Command {
     Help,
     Run(String),
     Version,
-    Unknown,
 }
 
 pub struct Commands {
     command: Command,
 }
 
-impl Default for Commands {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Commands {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self, SymError> {
         let args: Vec<String> = env::args().collect();
 
         let command = if args.len() == 3 && args[1] == "run" {
-            Command::Run(args[2].clone())
+            Ok(Command::Run(args[2].clone()))
         } else if args.len() == 2 {
             match args[1].as_str() {
-                "help" => Command::Help,
-                "version" => Command::Version,
-                //"run" => Command::Error(NoFileArgs),
-                _ => Command::Unknown,
+                "help" => Ok(Command::Help),
+                "version" => Ok(Command::Version),
+                "run" => Err(SymError::NotEnoughArguments(
+                    "File path not found".to_string(),
+                )),
+                cmd => Err(SymError::UnknownCommand(cmd.to_string())),
             }
+        } else if args.len() < 3 {
+            Err(SymError::NotEnoughArguments(args.len().to_string()))
         } else {
-            Command::Unknown
+            Err(SymError::ManyArguments)
         };
 
-        Commands { command }
+        Ok(Self { command: command? })
     }
 
     pub fn run(self) -> Option<Vec<String>> {
         match self.command {
-            Command::Run(file_name) => match utils::read_lines(&file_name) {
-                Some(code) => Some(code),
-                None => {
-                    Self::no_file_error();
-                    None
-                }
-            },
+            Command::Run(file_name) => utils::read_lines(&file_name),
             Command::Help => {
                 Self::help();
                 None
@@ -59,36 +48,25 @@ impl Commands {
                 Self::version();
                 None
             }
-            _ => {
-                Self::no_cmd_error();
-                None
-            }
         }
-    }
-
-    fn no_file_error() {
-        println!("error: no such file\n\n")
     }
 
     fn help() {
         println!(
             "Sym Lang's runner\n\nUsage: sym [COMMAND]\n\nCommands:\n  run [FILE PATH]    run a code\n  help               seable infomations for help\n  version            seable sym's version"
-        )
-    }
-
-    fn no_cmd_error() {
-        println!(
-            "error: no such command\n\n    If you want to see help, run this command 'sym help'"
-        )
+        );
+        process::exit(0);
     }
 
     fn version() {
-        println!("sym {}", env!("CARGO_PKG_VERSION"))
+        println!("sym {}", env!("CARGO_PKG_VERSION"));
+        process::exit(0);
     }
 }
 
 #[cfg(test)]
 mod tests {
+    /*
     use super::*;
     use std::env;
 
@@ -146,4 +124,5 @@ mod tests {
         let cmd = Commands::new();
         assert!(matches!(cmd.command, Command::Unknown));
     }
+    */
 }

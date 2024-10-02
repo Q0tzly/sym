@@ -1,3 +1,4 @@
+use crate::error::SymError;
 use crate::utils;
 use crate::{instructions::Instruction, parse::Line};
 
@@ -20,121 +21,100 @@ impl VM {
         }
     }
 
-    pub fn run(&mut self) {
-        while self.running {
+    pub fn run(&mut self) -> Result<(), SymError> {
+        while self.running && self.pc < self.program.len() {
             self.pc += 1;
-
             let instruction = self.program[self.pc - 1].clone();
-            self.execute_line(instruction);
-
-            if self.pc >= self.program.len() {
-                self.running = false;
-            }
+            self.execute_line(instruction)?;
         }
+        Ok(())
     }
 
-    fn execute_line(&mut self, instructions: Line) {
+    fn execute_line(&mut self, instructions: Line) -> Result<(), SymError> {
         if let Line::Instructions(instructions) = instructions {
             for instruction in instructions {
-                self.execute(instruction)
+                self.execute(instruction)?;
             }
         }
+        Ok(())
     }
 
-    fn execute(&mut self, instruction: Instruction) {
-        // Do Error handring at future
+    fn binary_op<F>(&mut self, op: F) -> Result<(), SymError>
+    where
+        F: FnOnce(u8, u8) -> u8,
+    {
+        let a = self.stack.pop().ok_or(SymError::StackUnderflow)?;
+        let b = self.stack.pop().ok_or(SymError::StackUnderflow)?;
+        self.stack.push(op(a, b));
+        Ok(())
+    }
+
+    fn execute(&mut self, instruction: Instruction) -> Result<(), SymError> {
         match instruction {
-            Instruction::Push(num) => self.stack.push(num),
-            Instruction::Pop => {
-                self.stack.pop().unwrap();
+            Instruction::Push(num) => {
+                self.stack.push(num);
+                Ok(())
             }
+            Instruction::Pop => self.stack.pop().ok_or(SymError::StackUnderflow).map(|_| ()),
             Instruction::Dup => {
-                let a = self.stack.pop().unwrap();
+                let a = *self.stack.last().ok_or(SymError::StackUnderflow)?;
                 self.stack.push(a);
-                self.stack.push(a);
+                Ok(())
             }
             Instruction::Swap => {
-                let a = self.stack.pop().unwrap();
-                let b = self.stack.pop().unwrap();
+                let a = self.stack.pop().ok_or(SymError::StackUnderflow)?;
+                let b = self.stack.pop().ok_or(SymError::StackUnderflow)?;
                 self.stack.push(a);
                 self.stack.push(b);
+                Ok(())
             }
-            Instruction::Add => {
-                let a = self.stack.pop().unwrap();
-                let b = self.stack.pop().unwrap();
-                self.stack.push(a + b);
-            }
-            Instruction::Sub => {
-                let a = self.stack.pop().unwrap();
-                let b = self.stack.pop().unwrap();
-                self.stack.push(b - a);
-            }
-            Instruction::Mul => {
-                let a = self.stack.pop().unwrap();
-                let b = self.stack.pop().unwrap();
-                self.stack.push(a * b);
-            }
-            Instruction::Div => {
-                let a = self.stack.pop().unwrap();
-                let b = self.stack.pop().unwrap();
-                self.stack.push(b / a);
-            }
-            Instruction::Mod => {
-                let a = self.stack.pop().unwrap();
-                let b = self.stack.pop().unwrap();
-                self.stack.push(b % a);
-            }
-            Instruction::Eq => {
-                let a = self.stack.pop().unwrap();
-                let b = self.stack.pop().unwrap();
-                let ret = if a == b { 1 } else { 0 };
-                self.stack.push(ret);
-            }
-            Instruction::Gt => {
-                let a = self.stack.pop().unwrap();
-                let b = self.stack.pop().unwrap();
-                let ret = if b > a { 1 } else { 0 };
-                self.stack.push(ret);
-            }
-            Instruction::Lt => {
-                let a = self.stack.pop().unwrap();
-                let b = self.stack.pop().unwrap();
-                let ret = if b < a { 1 } else { 0 };
-                self.stack.push(ret);
-            }
+            Instruction::Add => Ok(self.binary_op(|a, b| a + b)?),
+            Instruction::Sub => Ok(self.binary_op(|a, b| b - a)?),
+            Instruction::Mul => Ok(self.binary_op(|a, b| a * b)?),
+            Instruction::Div => Ok(self.binary_op(|a, b| b / a)?),
+            Instruction::Mod => Ok(self.binary_op(|a, b| b % a)?),
+            Instruction::Eq => Ok(self.binary_op(|a, b| if a == b { 1 } else { 0 })?),
+            Instruction::Gt => Ok(self.binary_op(|a, b| if b > a { 1 } else { 0 })?),
+            Instruction::Lt => Ok(self.binary_op(|a, b| if b < a { 1 } else { 0 })?),
             Instruction::Jmp(i) => {
                 self.pc = i - 1;
+                Ok(())
             }
             Instruction::Jz(i) => {
-                if self.stack.pop().unwrap() == 0 {
+                if self.stack.pop().ok_or(SymError::StackUnderflow)? == 0 {
                     self.pc = i - 1;
                 }
+                Ok(())
             }
             Instruction::Jnz(i) => {
-                if self.stack.pop().unwrap() != 0 {
+                if self.stack.pop().ok_or(SymError::StackUnderflow)? != 0 {
                     self.pc = i - 1;
                 }
+                Ok(())
             }
             Instruction::Halt => {
                 self.running = false;
+                Ok(())
             }
-            Instruction::In => self.stack.push(utils::input_from_char()),
+            Instruction::In => {
+                self.stack.push(utils::input_from_char()?);
+                Ok(())
+            }
             Instruction::Out => {
-                let a = self.stack.pop().unwrap();
+                let a = self.stack.pop().ok_or(SymError::StackUnderflow)?;
                 utils::out_as_char(a);
+                Ok(())
             }
-            Instruction::DebugIn => self.stack.push(utils::input_from_u8()),
+            Instruction::DebugIn => {
+                self.stack.push(utils::input_from_u8()?);
+                Ok(())
+            }
             Instruction::DebugOut => {
-                let a = self.stack.pop().unwrap();
+                let a = self.stack.pop().ok_or(SymError::StackUnderflow)?;
                 utils::out_as_u8(a);
+                Ok(())
             }
-            Instruction::None => (),
-            /*
-            _ => {
-                println!("The Instruction is Unimplement.");
-                ()
-            }
-            */
+            Instruction::None => Ok(()),
         }
     }
 }
