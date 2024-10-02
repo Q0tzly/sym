@@ -26,7 +26,8 @@ pub enum Instruction {
     In,  // ?
     Out, // !
     // Debug
-    Debug, // $
+    DebugIn,  // $?
+    DebugOut, // $!
     None,
 }
 
@@ -51,7 +52,8 @@ impl Instruction {
             ";" => Instruction::Halt,
             "?" => Instruction::In,
             "!" => Instruction::Out,
-            "$" => Instruction::Debug,
+            "$?" => Instruction::DebugIn,
+            "$!" => Instruction::DebugOut,
             // Handle numeric push or control flow instructions
             s => {
                 if s.is_empty() {

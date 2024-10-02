@@ -16,6 +16,12 @@ pub struct Commands {
     command: Command,
 }
 
+impl Default for Commands {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Commands {
     pub fn new() -> Self {
         let args: Vec<String> = env::args().collect();

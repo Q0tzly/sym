@@ -34,13 +34,10 @@ impl VM {
     }
 
     fn execute_line(&mut self, instructions: Line) {
-        match instructions {
-            Line::Instructions(instructions) => {
-                for instruction in instructions {
-                    self.execute(instruction)
-                }
+        if let Line::Instructions(instructions) = instructions {
+            for instruction in instructions {
+                self.execute(instruction)
             }
-            _ => (),
         }
     }
 
@@ -121,17 +118,23 @@ impl VM {
             Instruction::Halt => {
                 self.running = false;
             }
-            //Instruction::In => self.stack.push(utils::input()),
+            Instruction::In => self.stack.push(utils::input_from_char()),
             Instruction::Out => {
                 let a = self.stack.pop().unwrap();
-                utils::out(a);
+                utils::out_as_char(a);
             }
-            Instruction::Debug => (),
+            Instruction::DebugIn => self.stack.push(utils::input_from_u8()),
+            Instruction::DebugOut => {
+                let a = self.stack.pop().unwrap();
+                utils::out_as_u8(a);
+            }
             Instruction::None => (),
+            /*
             _ => {
-                println!("D");
+                println!("The Instruction is Unimplement.");
                 ()
             }
+            */
         }
     }
 }
