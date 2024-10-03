@@ -3,12 +3,13 @@ name = "sym-lang"
 version = "1.0.0"
 authors = ["Q0tzly"]
 edition = "2021"
+keywords = ["language", "interpreter", "command"]
 
-repository = "https://github.com/Q0tzly/sym"
-license = "MIT"
+license-file = "LICENSE"
 readme = "README.md"
 
-keywords = ["language", "interpreter", "command"]
+repository = "https://github.com/Q0tzly/sym"
+documentation = "https://q0tzly.github.io/sym/en/book/index.html"
 
 [dependencies]
 
