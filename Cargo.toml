@@ -1,7 +1,14 @@
 [package]
-name = "sym"
-version = "0.1.0"
+name = "sym-lang"
+version = "1.0.0"
+authors = ["Q0tzly"]
 edition = "2021"
+
+repository = "https://github.com/Q0tzly/sym"
+license = "MIT"
+readme = "README.md"
+
+keywords = ["language", "interpreter", "command"]
 
 [dependencies]
 
