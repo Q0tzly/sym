@@ -5,6 +5,9 @@ authors = ["Q0tzly"]
 edition = "2021"
 keywords = ["language", "interpreter", "command"]
 
+description = "Sym Lang is a lightweight stack-based programming language that uses symbols and numbers."
+
+license = "MIT"
 license-file = "LICENSE"
 readme = "README.md"
 
