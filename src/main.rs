@@ -1,7 +1,7 @@
-use sym::command::Commands;
-use sym::error::SymError;
-use sym::parse::{Line, Parser};
-use sym::vm::VM;
+use sym_lang::command::Commands;
+use sym_lang::error::SymError;
+use sym_lang::parse::{Line, Parser};
+use sym_lang::vm::VM;
 
 fn main() -> Result<(), SymError> {
     let code = get_code()?;

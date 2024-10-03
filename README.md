@@ -1,4 +1,4 @@
-# Sym - 0.1.0
+# Sym - 1.0.0
 
 Sym (Symbolic) is stackbase programming language. It has smallest struct and tiny instructions base
 d symbolic.
