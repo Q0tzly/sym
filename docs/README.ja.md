@@ -28,7 +28,7 @@ sym run <path_to_file.sym>
 
 ## ドキュメント
 
-シンタックスを知りたい場合は、[ドキュメント](https://github.com/Q0tzly/sym/tree/main/docs)を確認してください。
+シンタックスを知りたい場合は、[ドキュメント](https://q0tzly.github.io/sym/ja/book/index.html)を確認してください。
 
 ## サンプル
 
