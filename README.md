@@ -30,7 +30,7 @@ sym run <path_to_file.sym>
 
 ## Documents
 
-If you want to know the syntax of one, should check [documents](https://github.com/Q0tzly/sym/tree/main/docs).
+If you want to know the syntax of one, should check [documents](https://q0tzly.github.io/sym/en/book/index.html).
 
 ## Samples
 
